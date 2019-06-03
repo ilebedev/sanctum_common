@@ -1,26 +1,21 @@
 #ifndef SECURE_BOOT_H
 #define SECURE_BOOT_H
 
-#include <hash.h>
-#include <signature.h>
+#include <cryptography.h>
 
-typedef struct bootloader_inputs_t {
-  public_key_t manufacturer_public_key;
-  signature_t manufacturer_signature;
-  bool has_encrypted_device_key;
-  bool has_encrypted_post_boot_key;
-  size_t software_size;
-  // PUF helper data belongs here
-  // encrypted SK_D belongs here
-} bootloader_inputs_t;
-
-typedef struct bootloader_io_t {
+typedef struct boot_image_header_t {
+  bool device_public_key_present;
   public_key_t device_public_key;
-  public_key_t post_boot_public_key;
-  secret_key_t post_boot_secret_key;
-  measurement_t post_boot_measurement;
-  signature_t post_boot_signature;
-  bootloader_inputs_t bootloader_inputs;
-} bootloader_io_t;
+  signature_t device_certificate;
+
+  hash_t software_measurement;
+  bool software_public_key_present;
+  public_key_t software_public_key;
+  secret_key_t software_secret_key;
+  signature_t software_signature;
+
+  size_t software_measured_bytes;
+  uint8_t* software_measured_binary[];
+} boot_image_header_t;
 
 #endif //SECURE_BOOT_H
