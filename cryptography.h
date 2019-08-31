@@ -55,9 +55,9 @@ static inline void symmetric_encrypt(const void * in_plaintext,
 
   struct AES_ctx ctx;
   uint8_t buffer[in_message_size]; // CAUTION: the size should never be controlled by the adversary!
-  memcpy(&buffer, in_plaintext, in_message_size);
+  memcpy(buffer, in_plaintext, in_message_size);
   AES_init_ctx_iv(&ctx, in_key, in_public_values);
-  AES_CTR_xcrypt_buffer(&ctx, &buffer, in_message_size);
+  AES_CTR_xcrypt_buffer(&ctx, buffer, in_message_size);
 }
 
 static inline void symmetric_decrypt(const void * in_ciphertext,
@@ -70,7 +70,7 @@ static inline void symmetric_decrypt(const void * in_ciphertext,
   uint8_t buffer[in_message_size]; // CAUTION: the size should never be controlled by the adversary!
   memcpy(buffer, in_ciphertext, in_message_size);
   AES_init_ctx_iv(&ctx, in_key, in_public_values);
-  AES_CTR_xcrypt_buffer(&ctx, &buffer, in_message_size);
+  AES_CTR_xcrypt_buffer(&ctx, buffer, in_message_size);
 }
 
 // Signatures
