@@ -97,7 +97,7 @@ static inline void sign(void * in_data,
   secret_key_t * in_secret_key,
   signature_t * out_signature) {
 
-  ed25519_sign(out_signature,
+  ed25519_sign((uint8_t *)out_signature,
     in_data,
     in_data_size,
     (const uint8_t*)in_public_key,
