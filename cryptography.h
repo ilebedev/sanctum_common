@@ -100,8 +100,8 @@ static inline void sign(void * in_data,
   ed25519_sign(out_signature,
     in_data,
     in_data_size,
-    in_public_key,
-    in_secret_key);
+    (const uint8_t*)in_public_key,
+    (const uint8_t*)in_secret_key);
 }
 
 #endif
