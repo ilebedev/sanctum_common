@@ -40,6 +40,9 @@ static inline void finalize_hash(hash_context_t * hash_context,
 #define CTR 1
 #define AES256 1
 #include <aes/aes.h>
+#if (AES_KEYLEN != 32)
+  #error This utility library assumes the AES key size is 32 Bytes
+#endif
 
 #include <string.h>
 // Provides memcpy
@@ -54,10 +57,9 @@ static inline void symmetric_encrypt(const void * in_plaintext,
   void * out_ciphertext) {
 
   struct AES_ctx ctx;
-  uint8_t buffer[in_message_size]; // CAUTION: the size should never be controlled by the adversary!
-  memcpy(buffer, in_plaintext, in_message_size);
-  AES_init_ctx_iv(&ctx, in_key, in_public_values);
-  AES_CTR_xcrypt_buffer(&ctx, buffer, in_message_size);
+  memcpy(out_ciphertext, in_plaintext, in_message_size);
+  AES_init_ctx_iv(&ctx, (const uint8_t *)in_key, (const uint8_t *)in_public_values);
+  AES_CTR_xcrypt_buffer(&ctx, (uint8_t*)out_ciphertext, in_message_size);
 }
 
 static inline void symmetric_decrypt(const void * in_ciphertext,
@@ -67,10 +69,9 @@ static inline void symmetric_decrypt(const void * in_ciphertext,
   void * out_plaintext) {
 
   struct AES_ctx ctx;
-  uint8_t buffer[in_message_size]; // CAUTION: the size should never be controlled by the adversary!
-  memcpy(buffer, in_ciphertext, in_message_size);
-  AES_init_ctx_iv(&ctx, in_key, in_public_values);
-  AES_CTR_xcrypt_buffer(&ctx, buffer, in_message_size);
+  memcpy(out_plaintext, in_ciphertext, in_message_size);
+  AES_init_ctx_iv(&ctx, (const uint8_t *)in_key, (const uint8_t *)in_public_values);
+  AES_CTR_xcrypt_buffer(&ctx, (uint8_t*)out_plaintext, in_message_size);
 }
 
 // Signatures
@@ -84,24 +85,41 @@ typedef struct secret_key_t { uint8_t x[64]; } secret_key_t;
 typedef struct signature_t { uint8_t x[64]; } signature_t;
 
 static inline void create_secret_signing_key(const key_seed_t * in_seed, secret_key_t * out_secret_key) {
-  ed25519_create_privkey(out_secret_key, in_seed);
+  ed25519_create_privkey((uint8_t *)out_secret_key, (const uint8_t *)in_seed);
 }
 
 static inline void compute_public_signing_key(const secret_key_t * in_secret_key, const public_key_t * out_public_key) {
-  ed25519_compute_pubkey(out_public_key, in_secret_key);
+  ed25519_compute_pubkey( (uint8_t *)out_public_key, (const uint8_t *)in_secret_key );
 }
 
-static inline void sign(void * in_data,
-  size_t in_data_size,
-  public_key_t * in_public_key,
-  secret_key_t * in_secret_key,
-  signature_t * out_signature) {
+static inline void sign(const void * in_message,
+  const size_t in_message_size,
+  const public_key_t * in_public_key,
+  const secret_key_t * in_secret_key,
+  const signature_t * out_signature) {
 
   ed25519_sign((uint8_t *)out_signature,
-    in_data,
-    in_data_size,
-    (const uint8_t*)in_public_key,
-    (const uint8_t*)in_secret_key);
+    (const uint8_t *)in_message,
+    in_message_size,
+    (const uint8_t *)in_public_key,
+    (const uint8_t *)in_secret_key);
+}
+
+static inline bool verify(const signature_t * in_signature,
+  const void * in_message,
+  const size_t in_message_size,
+  const public_key_t * in_public_key) {
+
+  return 1 == ed25519_verify((const uint8_t *)in_signature,
+    (const uint8_t *)in_message,
+    in_message_size,
+    (const uint8_t *)in_public_key);
+}
+
+// Key agreement
+static inline void perform_key_agreement(const public_key_t * public_key_A, const secret_key_t * secret_key_B, symmetric_key_t * out_key) {
+  // Agreed-upon value is 32 Bytes, conveniently equal to the symmetric key size
+  ed25519_key_exchange( (uint8_t *)out_key, (const uint8_t *)public_key_A, (const uint8_t *)secret_key_B );
 }
 
 #endif
