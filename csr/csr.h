@@ -4,7 +4,7 @@
 #define STR_IMPL_(x) #x      //stringify
 #define STR(x) STR_IMPL_(x)
 
-#define CSR_TRNG 0xCC0
+#define CSR_RNG 0xCC0
 
 // ### Enclave virtual base and mask
 // (per-core) registers
@@ -39,27 +39,23 @@
 #define CSR_MEPARBASE 0x7c7
 #define CSR_MEPARMASK 0x7c8
 
-#define read_csr(reg) ({  \
-  unsigned long __tmp;    \
-  asm volatile (          \
-    "csrr %0, "STR(reg)   \
-    : "=r"(__tmp));       \
-  __tmp;                  \
-})
+#define read_csr(reg) ({ unsigned long __tmp; \
+  asm volatile ("csrr %0, " #reg : "=r"(__tmp)); \
+  __tmp; })
 
-#define write_csr(reg, val) ({  \
-  asm volatile (                \
-    "csrw "STR(reg)", %0"       \
-    :                           \
-    : "rK"(val));               \
-})
+#define write_csr(reg, val) ({ \
+  asm volatile ("csrw " #reg ", %0" :: "rK"(val)); })
 
-#define swap_csr(reg, val) ({   \
-  unsigned long __tmp;          \
-  asm volatile (                \
-    "csrrw %0, "STR(reg)", %1"  \
-    : "=r"(__tmp)               \
-    : "rK"(val));               \
+#define swap_csr(reg, val) ({ unsigned long __tmp; \
+  asm volatile ("csrrw %0, " #reg ", %1" : "=r"(__tmp) : "rK"(val)); \
+  __tmp; })
+
+#define set_csr(reg, bit) ({ unsigned long __tmp; \
+  asm volatile ("csrrs %0, " #reg ", %1" : "=r"(__tmp) : "rK"(bit)); \
+  __tmp; })
+
+#define clear_csr(reg, bit) ({ unsigned long __tmp; \
+  asm volatile ("csrrc %0, " #reg ", %1" : "=r"(__tmp) : "rK"(bit)); \
   __tmp; })
 
 #endif // CSR_H
