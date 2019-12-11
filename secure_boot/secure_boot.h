@@ -4,8 +4,10 @@
 #include <cryptography.h>
 
 typedef struct boot_image_header_t {
+  public_key_t manufacturer_public_key;
+
   public_key_t device_public_key;
-  signature_t device_certificate;
+  signature_t device_signature;
 
   hash_t software_measurement;
   public_key_t software_public_key;

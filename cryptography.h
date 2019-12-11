@@ -2,10 +2,12 @@
 #define CRYPTOGRAPHY_H
 
 // Hash
-#include <sha3/sha3.h>
+#include "ed25519/sha512.h"
+#include <stdint.h>
+#include <stdbool.h>
 
-typedef struct hash_t { uint8_t x[32]; } hash_t;
-typedef sha3_ctx_t hash_context_t;
+typedef struct hash_t { uint8_t x[64]; } hash_t;
+typedef sha512_context hash_context_t;
 
 static inline void hash(const void * in_data,
   size_t in_data_size,
@@ -13,24 +15,24 @@ static inline void hash(const void * in_data,
 
   // mdlen = hash output in bytes
   // digest goes to md
-  sha3(in_data, in_data_size, out_hash, 32);
+  sha512(in_data, in_data_size, (uint8_t *)out_hash);
 }
 
 static inline void init_hash(hash_context_t * hash_context) {
-  sha3_init(hash_context, 32);    // mdlen = hash output in bytes
+  sha512_init(hash_context);    // mdlen = hash output in bytes
 }
 
 static inline void extend_hash(hash_context_t * hash_context,
   const void * in_data,
   size_t in_data_size) {
-  sha3_update(hash_context, in_data, in_data_size);
+  sha512_update(hash_context, in_data, in_data_size);
 }
 
 static inline void finalize_hash(hash_context_t * hash_context,
   hash_t * out_hash) {
 
   // digest goes to md
-  sha3_final(out_hash, hash_context);
+  sha512_final(hash_context, (uint8_t *)out_hash);
 }
 
 // Symmetric cipher
@@ -88,8 +90,8 @@ static inline void create_secret_signing_key(const key_seed_t * in_seed, secret_
   ed25519_create_privkey((uint8_t *)out_secret_key, (const uint8_t *)in_seed);
 }
 
-static inline void compute_public_signing_key(const secret_key_t * in_secret_key, const public_key_t * out_public_key) {
-  ed25519_compute_pubkey( (uint8_t *)out_public_key, (const uint8_t *)in_secret_key );
+static inline void compute_public_signing_key(const secret_key_t * in_secret_key, public_key_t * out_public_key) {
+  ed25519_compute_pubkey( (uint8_t *)out_public_key, (uint8_t *)in_secret_key );
 }
 
 static inline void sign(const void * in_message,
