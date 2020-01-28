@@ -18,4 +18,6 @@ typedef struct boot_image_header_t {
   uint8_t* software_measured_binary[];
 } boot_image_header_t;
 
+typedef boot_image_header_t sm_keys_t;
+
 #endif //SECURE_BOOT_H
