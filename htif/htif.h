@@ -2,6 +2,9 @@
 #define HTIF_H
 
 #include <stdint.h>
+#include <string.h>
+#include <stdarg.h>
+#include <platform.h>
 
 extern volatile uint64_t tohost;
 extern volatile uint64_t fromhost;
@@ -15,12 +18,6 @@ extern volatile uint64_t fromhost;
 
 void htif_putchar(uint8_t c);
 
-uint64_t htif_getchar() ;
-
-void print_char(char c);
-
-void print_str(char* s);
-
-void print_int(uint64_t n);
+uint64_t htif_getchar(void);
 
 #endif // HTIF_H
